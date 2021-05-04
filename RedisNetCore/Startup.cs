@@ -27,11 +27,17 @@ namespace RedisNetCore
         {
 
             services.AddControllers();
-
+            //configuration redis
             services.AddDistributedRedisCache(option =>
             {
-                option.Configuration = "localhost:6380,password=admin123";
+                option.Configuration = "localhost:6379,password=admin123";
                 option.InstanceName = "localhost";
+            });
+
+            //configuration endpoint api external
+            services.AddHttpClient("post", client =>
+            {
+                client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com/");
             });
 
         }
