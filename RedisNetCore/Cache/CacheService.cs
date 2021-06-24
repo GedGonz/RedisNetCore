@@ -83,5 +83,16 @@ namespace RedisNetCore.Cache
             await Task.Delay(1000);
             return JsonSerializer.Deserialize<IEnumerable<T>>(data);
         }
+
+        public async Task<byte[]> ToByteArray<T>(T _post)
+        {
+            await Task.Delay(1000);
+            return JsonSerializer.SerializeToUtf8Bytes(_post);
+        }
+        public async Task<T> FromByteArray<T>(byte[] data)
+        {
+            await Task.Delay(1000);
+            return JsonSerializer.Deserialize<T>(data);
+        }
     }
 }

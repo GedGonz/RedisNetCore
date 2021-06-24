@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using RedisNetCore.Cache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,12 @@ namespace RedisNetCore.Controllers
     public class RedisController : ControllerBase
     {
         private readonly IDistributedCache _cash;
+        private readonly ICacheService _cacheService;
         private readonly IHttpClientFactory _httpClient;
 
-        public RedisController(IDistributedCache _cash, IHttpClientFactory _httpClient)
+        public RedisController(IDistributedCache _cash, ICacheService _cacheService, IHttpClientFactory _httpClient)
         {
+            this._cacheService = _cacheService;
             this._cash = _cash;
             this._httpClient = _httpClient;
         }
@@ -27,7 +30,7 @@ namespace RedisNetCore.Controllers
 
         public async Task<IActionResult> Get(int id)
         {
-            var value = await _cash.GetAsync(id.ToString());
+            var value = await _cacheService.getToCache(id.ToString());
 
             if (value==null) 
             {
@@ -38,7 +41,8 @@ namespace RedisNetCore.Controllers
 
             }
 
-            return Ok(FromByteArray(value));
+            var valor = _cacheService.FromByteArray<Post>(value);
+            return Ok(valor);
         }
         private async Task<Post> getPost(int id) {
 
@@ -48,17 +52,7 @@ namespace RedisNetCore.Controllers
 
         private async Task addToCache(Post _post)
         {
-            await _cash.SetAsync(_post.id.ToString(), ToByteArray(_post));
-        }
-
-        private byte[] ToByteArray(Post _post) 
-        {
-            return JsonSerializer.SerializeToUtf8Bytes(_post);
-        }
-
-        private Post FromByteArray(byte[] data) 
-        {
-            return JsonSerializer.Deserialize<Post>(data);
+            await _cacheService.addToCache(_post.id.ToString(), _cacheService.ToByteArray(_post));
         }
     }
 }
