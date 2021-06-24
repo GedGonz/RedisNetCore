@@ -30,20 +30,27 @@ namespace RedisNetCore.Controllers
 
         public async Task<IActionResult> Get(int id)
         {
-            var value = await _cacheService.getToCache(id.ToString());
+            var post = await obtenerPost(id);
 
-            if (value==null) 
-            {
-                var post = await getPost(id);
-                if (post != null)
-                    await addToCache(post);
-                return Ok(post);
+            return Ok(post);
 
-            }
-
-            var valor = _cacheService.FromByteArray<Post>(value);
-            return Ok(valor);
         }
+
+        private async Task<Post> obtenerPost(int id)
+        {
+            var post = new Post();
+            var cache = await _cacheService.getToCache(id.ToString());
+
+            if (cache != null)
+                post = await _cacheService.FromByteArray<Post>(cache);
+            else
+                post = await getPost(id);
+
+            if (post != null && cache == null)
+                await addToCache(post);
+            return post;
+        }
+
         private async Task<Post> getPost(int id) {
 
             HttpClient client = _httpClient.CreateClient("post");
